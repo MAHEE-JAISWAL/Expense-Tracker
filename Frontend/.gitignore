@@ -1,0 +1,20 @@
+# Node / Frontend
+Frontend/node_modules/
+Frontend/dist/
+# Vite env
+Frontend/.env
+Frontend/.env.local
+# Logs
+*.log
+
+# .NET
+Backend/bin/
+Backend/obj/
+# Ignore appsettings if it contains secrets
+Backend/appsettings.json
+Backend/appsettings.Development.json
+
+# Optional: local secrets & IDE
+.vscode/
+.env
+node_modules/
