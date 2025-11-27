@@ -6,13 +6,20 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Read FRONTEND_URL from env (Render) or appsettings (local dev)
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL")
+                  ?? builder.Configuration["FrontendUrl"]
+                  ?? "http://localhost:5173";
+
+Console.WriteLine($"✅ Frontend URL: {frontendUrl}");
+
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowFrontend", policy =>
   {
-    policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+    policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://localhost:3000")
           .AllowAnyMethod()
           .AllowAnyHeader();
   });
