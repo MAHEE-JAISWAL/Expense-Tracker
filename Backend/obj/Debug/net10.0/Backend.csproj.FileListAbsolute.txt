@@ -46,3 +46,4 @@ C:\Users\Hp\OneDrive\Desktop\Test\Expense Tracker\Backend\obj\Debug\net10.0\refi
 C:\Users\Hp\OneDrive\Desktop\Test\Expense Tracker\Backend\obj\Debug\net10.0\Backend.pdb
 C:\Users\Hp\OneDrive\Desktop\Test\Expense Tracker\Backend\obj\Debug\net10.0\Backend.genruntimeconfig.cache
 C:\Users\Hp\OneDrive\Desktop\Test\Expense Tracker\Backend\obj\Debug\net10.0\ref\Backend.dll
+C:\Users\Hp\OneDrive\Desktop\Test\Expense Tracker\backend\obj\Debug\net10.0\Backend.sourcelink.json
