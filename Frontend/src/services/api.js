@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5179/api";
+const rawApi = import.meta.env.VITE_API_URL || "http://localhost:5179/api";
+// normalize: remove trailing slashes and ensure "/api" suffix
+const API_URL = rawApi.replace(/\/+$/, "").replace(/\/api$/, "") + "/api";
 
 const api = axios.create({
   baseURL: API_URL,

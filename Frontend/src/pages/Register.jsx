@@ -34,9 +34,27 @@ const Register = () => {
       );
 
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        navigate("/dashboard");
+        // if backend returned a token use it, otherwise attempt to login
+        const token = response.data.token;
+        const user = response.data.user;
+        if (token) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(user));
+          navigate("/dashboard");
+        } else {
+          // fallback: call login to obtain token
+          const loginRes = await authAPI.login(
+            formData.email,
+            formData.password
+          );
+          if (loginRes.data?.token) {
+            localStorage.setItem("token", loginRes.data.token);
+            localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+            navigate("/dashboard");
+          } else {
+            navigate("/login");
+          }
+        }
       } else {
         setError(response.data.message || "Registration failed");
       }
