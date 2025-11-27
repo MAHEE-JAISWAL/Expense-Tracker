@@ -1,20 +1,21 @@
-# Node / Frontend
-Frontend/node_modules/
+# Node
+node_modules/
 Frontend/dist/
-# Vite env
-Frontend/.env
-Frontend/.env.local
-# Logs
-*.log
+Frontend/build/
 
 # .NET
 Backend/bin/
 Backend/obj/
-# Ignore appsettings if it contains secrets
+
+# Env & Secrets
+.env
+.env.local
+.env.production
 Backend/appsettings.json
 Backend/appsettings.Development.json
+Frontend/.env.local
 
-# Optional: local secrets & IDE
+# IDE
 .vscode/
-.env
-node_modules/
+.idea/
+*.swp
