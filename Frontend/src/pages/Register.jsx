@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // { Link } added
 import Navbar from "../components/NavBar";
 import { authAPI } from "../services/api";
 
@@ -34,27 +34,9 @@ const Register = () => {
       );
 
       if (response.data.success) {
-        // if backend returned a token use it, otherwise attempt to login
-        const token = response.data.token;
-        const user = response.data.user;
-        if (token) {
-          localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
-          navigate("/dashboard");
-        } else {
-          // fallback: call login to obtain token
-          const loginRes = await authAPI.login(
-            formData.email,
-            formData.password
-          );
-          if (loginRes.data?.token) {
-            localStorage.setItem("token", loginRes.data.token);
-            localStorage.setItem("user", JSON.stringify(loginRes.data.user));
-            navigate("/dashboard");
-          } else {
-            navigate("/login");
-          }
-        }
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        navigate("/dashboard");
       } else {
         setError(response.data.message || "Registration failed");
       }
@@ -134,12 +116,12 @@ const Register = () => {
 
           <p className="text-center text-gray-600 mt-4">
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-indigo-600 font-semibold hover:underline"
             >
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>

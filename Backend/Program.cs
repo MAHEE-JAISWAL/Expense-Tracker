@@ -15,14 +15,27 @@ Console.WriteLine($"✅ Frontend URL: {frontendUrl}");
 
 // Add services
 builder.Services.AddControllers();
+
+// Replace existing CORS setup with this block
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowFrontend", policy =>
   {
-    policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://localhost:3000")
-          .AllowAnyMethod()
-          .AllowAnyHeader();
+    // allow the deployed frontend + local dev hosts
+    policy.WithOrigins(
+        frontendUrl,                         // env / appsettings value (e.g. your Netlify domain)
+        "https://smartexpensee.netlify.app", // add your Netlify URL explicitly
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000"
+      )
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials(); // if you ever use cookies; remove if not needed
   });
+
+  // Optional: fallback permissive policy for quick testing only:
+  // options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
 // MongoDB
@@ -80,10 +93,12 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 app.UseRouting();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend"); // ensure this runs before authentication
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+// optional health endpoint
+app.MapGet("/healthz", () => Results.Ok("Healthy"));
 app.Run();

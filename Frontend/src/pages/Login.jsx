@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // { Link } added
 import Navbar from "../components/NavBar";
 import { authAPI } from "../services/api";
 
@@ -98,12 +98,12 @@ const Login = () => {
 
           <p className="text-center text-gray-600 mt-4">
             Don't have an account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="text-indigo-600 font-semibold hover:underline"
             >
               Register
-            </a>
+            </Link>
           </p>
         </div>
       </div>
