@@ -5,3 +5,8 @@
 
 [context.production.environment]
   VITE_API_URL = "https://your-backend.onrender.com/api"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
