@@ -6,28 +6,32 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read FRONTEND_URL from env (Render) or appsettings (local dev)
+// Read FRONTEND_URL from env (Render priority) or appsettings (local dev)
 var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL")
                   ?? builder.Configuration["FrontendUrl"]
                   ?? "http://localhost:5173";
 
 Console.WriteLine($"✅ Frontend URL: {frontendUrl}");
 
-// ADD THIS BLOCK — validate MongoDB connection
-var mongoConn = builder.Configuration["MongoDbSettings:ConnectionString"]
-                 ?? Environment.GetEnvironmentVariable("MongoDbSettings__ConnectionString")
-                 ?? throw new Exception("❌ Mongo Connection missing. Set MongoDbSettings__ConnectionString env var or appsettings.json");
+// Read MongoDB connection from env FIRST, then appsettings
+var mongoConn = Environment.GetEnvironmentVariable("MongoDbSettings__ConnectionString")
+                ?? builder.Configuration["MongoDbSettings:ConnectionString"];
 
-Console.WriteLine($"✅ MongoDB connected to: {mongoConn.Substring(0, 50)}...");
+if (string.IsNullOrEmpty(mongoConn))
+  throw new Exception("❌ MongoDB connection string missing. Set env var MongoDbSettings__ConnectionString on Render.");
 
-// ADD THIS BLOCK — validate JWT secret
-var jwtKey = builder.Configuration["JwtSettings:SecretKey"]
-             ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-             ?? throw new Exception("❌ JWT secret not found. Set JWT_SECRET env var.");
+Console.WriteLine($"✅ MongoDB connection: {mongoConn.Substring(0, Math.Min(50, mongoConn.Length))}...");
+
+// Read JWT secret from env FIRST, then appsettings
+var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET")
+             ?? builder.Configuration["JwtSettings:SecretKey"];
+
+if (string.IsNullOrEmpty(jwtKey))
+  throw new Exception("❌ JWT secret not found. Set env var JWT_SECRET on Render.");
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 if (keyBytes.Length < 32)
-  throw new Exception($"❌ JWT secret too short! Must be >= 32 bytes. Current: {keyBytes.Length} bytes.");
+  throw new Exception($"❌ JWT secret too short! Need >= 32 bytes, got {keyBytes.Length} bytes.");
 
 Console.WriteLine($"✅ JWT Secret loaded: {keyBytes.Length} bytes");
 
@@ -60,6 +64,8 @@ builder.Services.AddScoped<ExpenseService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
   .AddJwtBearer(options =>
   {
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
       ValidateIssuerSigningKey = true,
@@ -67,6 +73,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       ValidateIssuer = false,
       ValidateAudience = false,
       ValidateLifetime = true
+    };
+    options.Events = new JwtBearerEvents
+    {
+      OnTokenValidated = context =>
+      {
+        var idClaim = context.Principal?.FindFirst("id")?.Value;
+        if (!string.IsNullOrEmpty(idClaim))
+          context.HttpContext.Items["UserId"] = idClaim;
+        return Task.CompletedTask;
+      }
     };
   });
 
