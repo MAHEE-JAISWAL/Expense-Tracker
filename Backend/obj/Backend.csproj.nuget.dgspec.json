@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\backend\\Backend.csproj": {}
+    "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\Backend\\Backend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\backend\\Backend.csproj": {
+    "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\Backend\\Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\backend\\Backend.csproj",
+        "projectUniqueName": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\Backend\\Backend.csproj",
         "projectName": "Backend",
-        "projectPath": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\backend\\Backend.csproj",
+        "projectPath": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\Backend\\Backend.csproj",
         "packagesPath": "C:\\Users\\Hp\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\backend\\obj\\",
+        "outputPath": "C:\\Users\\Hp\\OneDrive\\Desktop\\Test\\Expense Tracker\\Backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Hp\\AppData\\Roaming\\NuGet\\NuGet.Config"

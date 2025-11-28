@@ -13,92 +13,82 @@ var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL")
 
 Console.WriteLine($"✅ Frontend URL: {frontendUrl}");
 
+// ADD THIS BLOCK — validate MongoDB connection
+var mongoConn = builder.Configuration["MongoDbSettings:ConnectionString"]
+                 ?? Environment.GetEnvironmentVariable("MongoDbSettings__ConnectionString")
+                 ?? throw new Exception("❌ Mongo Connection missing. Set MongoDbSettings__ConnectionString env var or appsettings.json");
+
+Console.WriteLine($"✅ MongoDB connected to: {mongoConn.Substring(0, 50)}...");
+
+// ADD THIS BLOCK — validate JWT secret
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"]
+             ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+             ?? throw new Exception("❌ JWT secret not found. Set JWT_SECRET env var.");
+
+var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
+if (keyBytes.Length < 32)
+  throw new Exception($"❌ JWT secret too short! Must be >= 32 bytes. Current: {keyBytes.Length} bytes.");
+
+Console.WriteLine($"✅ JWT Secret loaded: {keyBytes.Length} bytes");
+
 // Add services
 builder.Services.AddControllers();
 
-// Replace existing CORS setup with this block
+// CORS
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowFrontend", policy =>
   {
-    // allow the deployed frontend + local dev hosts
     policy.WithOrigins(
-        frontendUrl,                         // env / appsettings value (e.g. your Netlify domain)
-        "https://smartexpensee.netlify.app", // add your Netlify URL explicitly
+        frontendUrl,
+        "https://smartexpensee.netlify.app",
         "http://localhost:5173",
-        "http://localhost:5174",
         "http://localhost:3000"
       )
       .AllowAnyMethod()
       .AllowAnyHeader()
-      .AllowCredentials(); // if you ever use cookies; remove if not needed
+      .AllowCredentials();
   });
-
-  // Optional: fallback permissive policy for quick testing only:
-  // options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// MongoDB
+// MongoDB config
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ExpenseService>();
 
-// JWT Secret from user-secrets or env var
-var jwtKey = builder.Configuration["JwtSettings:SecretKey"]
-             ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-             ?? throw new Exception("❌ JWT secret not found! Run: dotnet user-secrets set \"JwtSettings:SecretKey\" \"your-32-char-secret\"");
-
-var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
-if (keyBytes.Length < 32)
-  throw new Exception($"❌ JWT secret too short! Must be >= 32 bytes. Current: {keyBytes.Length} bytes. Use a longer secret.");
-
-Console.WriteLine($"✅ JWT Secret loaded: {keyBytes.Length} bytes");
-
 // JWT Authentication
-builder.Services.AddAuthentication(options =>
-{
-  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-  options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-  options.RequireHttpsMetadata = false;
-  options.SaveToken = true;
-  options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options =>
   {
-    ValidateIssuer = false,
-    ValidateAudience = false,
-    ValidateLifetime = true,
-    ValidateIssuerSigningKey = true,
-    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-    ClockSkew = TimeSpan.Zero
-  };
-  options.Events = new JwtBearerEvents
-  {
-    OnTokenValidated = context =>
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-      var idClaim = context.Principal?.FindFirst("id")?.Value;
-      if (!string.IsNullOrEmpty(idClaim))
-        context.HttpContext.Items["UserId"] = idClaim;
-      return Task.CompletedTask;
-    },
-    OnAuthenticationFailed = context =>
-    {
-      Console.WriteLine($"❌ Auth failed: {context.Exception.Message}");
-      return Task.CompletedTask;
-    }
-  };
-});
+      ValidateIssuerSigningKey = true,
+      IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+      ValidateIssuer = false,
+      ValidateAudience = false,
+      ValidateLifetime = true
+    };
+  });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+  app.UseDeveloperExceptionPage();
+}
+
 app.UseRouting();
-app.UseCors("AllowFrontend"); // ensure this runs before authentication
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// optional health endpoint
-app.MapGet("/healthz", () => Results.Ok("Healthy"));
+// Health endpoint
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }))
+  .WithName("Health")
+  .WithOpenApi();
+
 app.Run();
