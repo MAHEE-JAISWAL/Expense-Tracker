@@ -33,6 +33,7 @@ const Register = () => {
         formData.password
       );
 
+      console.log("Register response:", response.data);
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));

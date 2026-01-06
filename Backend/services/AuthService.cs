@@ -34,17 +34,21 @@ namespace Backend.Services
         throw new Exception($"JWT secret too short! Need >= 32 bytes, got {keyBytes.Length}");
     }
 
-    public async Task<(bool Success, string Message, object? Data)> RegisterAsync(RegisterRequest req)
+    // change return type to include UserDto and token
+    public async Task<(bool Success, string Message, Backend.DTOs.UserDto? User, string? Token)> RegisterAsync(RegisterRequest req)
     {
       var existing = await _users.Find(u => u.Email == req.Email).FirstOrDefaultAsync();
       if (existing != null)
-        return (false, "Email already registered.", null);
+        return (false, "Email already registered.", null, null);
 
       var hashedPwd = BCrypt.Net.BCrypt.HashPassword(req.Password);
       var user = new User { Name = req.Name, Email = req.Email, PasswordHash = hashedPwd };
       await _users.InsertOneAsync(user);
 
-      return (true, "Registered successfully.", null);
+      var dto = new Backend.DTOs.UserDto { Id = user.Id ?? string.Empty, Name = user.Name, Email = user.Email };
+      var token = GenerateJwtToken(user);
+
+      return (true, "Registered successfully.", dto, token);
     }
 
     public async Task<(bool Success, string Message, UserDto? User, string? Token)> LoginAsync(LoginRequest req)

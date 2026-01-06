@@ -19,11 +19,11 @@ namespace Backend.Controllers
       if (!ModelState.IsValid)
         return BadRequest(ModelState);
 
-      var (success, message, _) = await _auth.RegisterAsync(req);
+      var (success, message, user, token) = await _auth.RegisterAsync(req);
       if (!success)
         return BadRequest(new { success, message });
 
-      return Ok(new { success, message });
+      return Ok(new { success, message, user, token });
     }
 
     [HttpPost("login")]
