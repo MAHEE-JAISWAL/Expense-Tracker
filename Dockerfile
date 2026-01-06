@@ -1,12 +1,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# copy csproj (Dockerfile is already inside Backend)
-COPY Backend.csproj ./
-RUN dotnet restore
+# copy csproj
+COPY Backend/Backend.csproj Backend/
+RUN dotnet restore Backend/Backend.csproj
 
-# copy rest of backend source
-COPY . ./
+# copy backend source
+COPY Backend/ Backend/
+WORKDIR /src/Backend
 RUN dotnet publish -c Release -o /app/out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
